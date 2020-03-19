@@ -1,0 +1,143 @@
+# 本项目创建于2019.12.19，是一个学习react和antd design的项目。参考文档地址：https://www.yuque.com/ant-design/course/wybhm9 根据文档的介绍手动一步一步的去构建项目
+# 本项目是[明烟雨任]（笔名）原创的，qq邮箱：741884588@qq.com。有问题可以联系本人
+
+## 1.在 umi 中，约定的存放页面代码的文件夹是 pages，是复数，不过如果你喜欢单数的话你配置项中你可以添加 singular 为 true 来让 page 变为约定的文件夹。在本课程中我们使用单数来作为约定目录。所以你需要修改config/config.js配置文件为：
+```` javascript
+export default {
+  singular: true,
+}
+````
+本项目使用umi的默认约定src/pages，不需要配置上面的这块代码`export default {singular: true}`.
+## 2.在 umi 中，你可以使用约定式的路由，在 pages 下面的 JS 文件都会按照文件名映射到一个路由，比如上面这个例子，访问 /helloworld 会对应到 HelloWorld.js.除了约定式的路由，你也可以使用配置式的路由。至于使用哪种路由取决于你的喜好，这不是本课程的重点。在本课程中为了让开发者更好的理解路由组件嵌套，我们会使用配置式的路由。要使用配置式的路由，你需要在配置文件 config/config.js 中添加如下配置:
+```` javascript
+export default {
+  routes: [{
+    path: '/',
+    component: './HelloWorld',
+  }],
+}
+````
+## 3.受控组件于非受控组件的区别
+非受控组件：不能直接控制状态的组件，我们称之为“非受控组件”。就是组件内部没有定义状态，状态是由外部传进来
+“受控”与“非受控”两个概念，区别在于这个组件的状态是否可以被外部修改
+
+使用是singular: false 对应的是models，不是model。使用umi的默认路由，如果找不到文件路径的时候，可以查看一下文件夹名称是否正确，在umi的默认路由下一般文件夹的名称后缀是有一个s的，比如models pages locales等
+## 4.mock模拟的数据注意点
+1. mock文件夹与src同一级别
+2. 关闭mock的启动命令 npm run dev:no-mock(好像是这样，可能不对)
+## mapStateToProps，mapDispatchToProps函数分别是connect函数的第一个参数和第二个参数。
+mapStateToProps：是一个把state注入到组件内的纯函数，return一个对象，这个对象会注入到组件的props，使得组件可以类似这样使用:this.props.state，这个函数类似这样：
+```` JavaScript
+/**
+ * 
+ * @param {pmr} state 
+ * mapStateToProps 函数的作用是把外部的state注入到PuzzleCardsPage组件中。
+ * 使得组件PuzzleCardsPage的状态由外部管理，使得在组件内可以这样使用：this.props.cardList
+ * mapStateToProps必须是一个纯函数，无副作用，返回一个对象，这个对象上的函数会被dva注入组件的props
+ * 这里的返回的对象是：{cardList}
+ */
+const mapStateToProps = (state) => {
+  const cardList = state[namespace].data;
+  return {cardList};
+};
+````
+mapDispatchToProps: 是一个把dispatch注入到组件的纯函数，它返回一个对象，这个函数类似这样：
+````javascript
+/**
+ * 
+ * @param {pmr} dispatch 
+ * mapDispatchToProps 函数的作用是把dispatch注入到组件中，这里是注入到PuzzleCardsPage组件
+ * 使得PuzzleCardsPage组件有dispatch的能力.使得组件内可以这样使用:this.props.onClickAdd
+ * mapDispatchToProps函数一般返回一个对象，这个对象上的函数会被注入到props上
+ * {
+    onClickAdd: (newCard) => {
+      const action = {
+        type: `${namespace}/addNewCard`,
+        payload: newCard,
+      };
+      dispatch(action);
+    },
+    onClickRemove: () => {
+      const action = {
+        type: `${namespace}/removeCard`,
+        payload: '',
+      };
+      dispatch(action);
+    },
+  };
+ */
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onClickAdd: (newCard) => {
+      const action = {
+        type: `${namespace}/addNewCard`,
+        payload: newCard,
+      };
+      dispatch(action);
+    },
+    onClickRemove: () => {
+      const action = {
+        type: `${namespace}/removeCard`,
+        payload: '',
+      };
+      dispatch(action);
+    },
+    onDidMount: () => {
+      dispatch({
+        type: `${namespace}/queryInitCards`
+      })
+    }
+  };
+};
+````
+## 6.<React.Fragment>的意义
+<React.Fragment> Fragments 可以让你聚合一个子元素列表，并且不在DOM中增加额外节点
+类似这样：
+```` javascript
+<>
+  <ChildA />
+  <ChildB />
+  <ChildC />
+</>
+以前都是用div来包裹一个子列表
+<div>
+  <ChildA />
+  <ChildB />
+  <ChildC />
+</div>
+这在一些特殊的html标签会无效的，比如
+<table>
+  <tr>
+    <div>
+      <td>Hello</td>
+      <td>World</td>
+    </div>
+  </tr>
+</table>
+````
+div标签在这里的结构无效的，因为table标签的结构特殊，所以得使用`<React.Fragment>`包裹
+## 7.关于在constructor函数bind函数的解释说明
+注意js的this指向比较特殊，比如以下的例子作为onClick回调函数由button组件去调用的时候不会把组件类的上下文带过去。
+```` javascript
+handleClick() {
+    console.log('handleClick', this); // undefined
+  }
+ ...
+ <button onClick={this.handleClick}>click</button>
+````
+### 这种问题推荐三种可能的解决方式，其核心均为将函数的this强制绑定到组件类上:
+1. 就是上面说的在constructor函数中显示调用bind。
+```` javascript
+constructor(props) {
+  super(props);
+  this.handleClick = this.handleClick.bind(this);
+}
+````
+2. 在onClick的时候进行bind: ，这种方式的劣势是每次调用的时候都需要进行bind，优势是方便传参，处理函数需要传参可以参考React的文档 Passing Arguments to Event Handlers
+3. 声明函数时使用箭头匿名函数，箭头函数会自动设置this为当前类。(简洁有效，墙裂推荐)
+```` javascript
+handleClick = () => {
+    console.log('handleClick', this); // Component
+}
+````
+## 8.getDerivedStateFromProps()

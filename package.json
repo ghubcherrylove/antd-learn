@@ -1,0 +1,25 @@
+{
+  "name": "antd-course",
+  "version": "1.0.0",
+  "description": "this is a learn react and antdd design project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "umi dev",
+    "build": "umi build"
+  },
+  "keywords": [],
+  "author": "pmr",
+  "license": "ISC",
+  "devDependencies": {
+    "umi": "^2.12.6",
+    "umi-plugin-react": "^1.14.9"
+  },
+  "dependencies": {
+    "@antv/g2": "^3.5.11",
+    "antd": "^3.26.3",
+    "dva": "^2.4.1",
+    "qs": "^6.9.1",
+    "react-intl": "^3.9.2"
+  }
+}
